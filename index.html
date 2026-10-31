@@ -4,8 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     
     <!-- Original QGIS2Web CSS Dependencies -->
     <link rel="stylesheet" href="./resources/ol.css">
@@ -79,3 +77,131 @@
         .layer-group { margin-bottom: 20px; }
         .layer-group-title { font-size: 0.9rem; font-weight: 600; color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;}
         .layer-item { display: flex; flex-direction: column; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--glass-border); }
+        .layer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .layer-label { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        
+        /* Custom Checkbox */
+        .layer-checkbox { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+        
+        /* Custom Slider */
+        .opacity-slider { width: 100%; appearance: none; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; outline: none; margin-top: 5px; }
+        .opacity-slider::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+
+        /* FIXED Map Canvas Layout */
+        #map-wrapper { 
+            flex: 1; 
+            position: relative; 
+            height: 100%; 
+            width: 100%; 
+            background-color: #f1f5f9; /* Light grey background ensures layers are visible even without basemap */
+        }
+        #map { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 1;
+        }
+
+        /* Floating Toggle Button */
+        #sidebar-toggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+            transition: 0.2s;
+        }
+        #sidebar-toggle:hover { background: var(--accent); color: #000; }
+
+        /* Hide default QGIS2Web layer switcher to use our custom one */
+        .layer-switcher { display: none !important; }
+
+        /* Overhaul Default OL Controls */
+        .ol-control > * { background-color: var(--glass-bg) !important; color: var(--text-main) !important; border-radius: 6px !important; border: 1px solid var(--glass-border) !important; }
+        .ol-control > *:hover { background-color: var(--accent) !important; color: #000 !important; }
+        .ol-zoom { top: 80px !important; left: 20px !important; background: transparent !important; }
+        
+        /* Modern Attribute Inspector Card */
+        .ol-popup {
+            position: absolute;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 300px;
+            bottom: 12px;
+            left: -50px;
+            color: var(--text-main);
+            z-index: 2000;
+        }
+        .ol-popup:after, .ol-popup:before { display: none; }
+        .ol-popup-closer { text-decoration: none; position: absolute; top: 15px; right: 15px; color: var(--text-muted); transition: 0.2s; }
+        .ol-popup-closer:after { content: "✖"; font-size: 14px; }
+        .ol-popup-closer:hover { color: #ef4444; }
+        
+        #popup-content table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        #popup-content th { text-align: left; padding: 8px; border-bottom: 1px solid var(--glass-border); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+        #popup-content td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; font-weight: 400; }
+        #popup-content tr:last-child td { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <!-- Top Header -->
+        <header id="app-header">
+            <div class="header-title">
+                <i class="fas fa-map-marked-alt"></i> 
+                <span>Spatial Intelligence Dashboard</span>
+            </div>
+            <div class="header-stats" id="feature-count">
+                Initializing Environment...
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <div id="workspace">
+            
+            <!-- Collapsible Custom Sidebar -->
+            <aside id="sidebar">
+                <div class="sidebar-section">
+                    <h3>Map Controls</h3>
+                    <div id="custom-layer-tree">
+                        <!-- Layers injected via JS dynamically -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Map Area -->
+            <main id="map-wrapper">
+                <button id="sidebar-toggle"><i class="fas fa-bars"></i></button>
+                
+                <div id="map">
+                    <!-- Required QGIS2Web Popup Structure -->
+                    <div id="popup" class="ol-popup">
+                        <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                        <div id="popup-content"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Original QGIS2Web Scripts -->
+    <script src="resources/qgis2web_expressions.
